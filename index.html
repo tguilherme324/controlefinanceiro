@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro</title>
+    <style>
+        /* Estilos atualizados para o layout */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: #ddd;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+        #login-container, #main-container, #expense-section, #income-section, #expense-control-section {
+            width: 100%;
+            max-width: 600px;
+            background: #2b2b2b;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+        }
+        h1, h2, h3 {
+            margin: 0;
+            font-size: 24px;
+            color: #ddd;
+        }
+        input, select {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 100%;
+            font-size: 16px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #333;
+            color: #ddd;
+        }
+        button {
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            max-width: 100%;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+        .section-button {
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #2b2b2b;
+        }
+        table, th, td {
+            border: 1px solid #444;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Login -->
+        <div id="login-container">
+            <h1>Login</h1>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Usuário" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+                <p id="login-error"></p>
+            </form>
+        </div>
+
+        <!-- Tela Principal -->
+        <div id="main-container" class="hidden">
+            <h1>Controle Financeiro</h1>
+            <main>
+                <button id="register-expense-btn" class="section-button">Registro de Despesas</button>
+                <button id="record-income-btn" class="section-button">Entradas</button>
+                <button id="expense-control-btn" class="section-button">Controle de Gastos</button>
+            </main>
+        </div>
+
+        <!-- Tela de Registro de Despesas -->
+        <div id="expense-section" class="hidden">
+            <h2>Registro de Despesas</h2>
+            <form id="expense-form">
+                <input type="text" id="expense-description" placeholder="Descrição" required>
+                <input type="number" id="expense-amount" placeholder="Valor" step="0.01" required>
+                <select id="expense-installments" required>
+                    <option value="">Parcelas</option>
+                    <option value="À vista">À vista</option>
+                    <option value="1x">1x</option>
+                    <option value="2x">2x</option>
+                    <option value="3x">3x</option>
+                    <option value="4x">4x</option>
+                    <option value="5x">5x</option>
+                    <option value="6x">6x</option>
+                    <option value="7x">7x</option>
+                    <option value="8x">8x</option>
+                    <option value="9x">9x</option>
+                    <option value="10x">10x</option>
+                    <option value="11x">11x</option>
+                    <option value="12x">12x</option>
+                </select>
+                <input type="date" id="expense-payment-date" required>
+                <input type="text" id="expense-creditor" placeholder="Nome do Credor" required>
+                <button type="submit">Adicionar Despesa</button>
+            </form>
+            <section id="expense-list">
+                <h3>Despesas</h3>
+                <table id="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Parcelas</th>
+                            <th>Data de Pagamento</th>
+                            <th>Credor</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expense-table-body"></tbody>
+                </table>
+            </section>
+            <button id="back-to-main-from-expense" class="section-button">Voltar</button>
+        </div>
+
+        <!-- Tela de Entradas -->
+        <div id="income-section" class="hidden">
+            <h2>Entradas</h2>
+            <form id="income-form">
+                <input type="text" id="income-description" placeholder="Descrição" required>
+                <input type="number" id="income-amount" placeholder="Valor" step="0.01" required>
+                <input type="date" id="income-payment-date" required>
+                <input type="text" id="income-payer" placeholder="Nome do Pagador" required>
+                <button type="submit">Adicionar Entrada</button>
+            </form>
+            <section id="income-list">
+                <h3>Entradas</h3>
+                <table id="income-table">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Data de Pagamento</th>
+                            <th>Pagador</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="income-table-body"></tbody>
+                </table>
+            </section>
+            <button id="back-to-main-from-income" class="section-button">Voltar</button>
+        </div>
+
+        <!-- Tela de Controle de Gastos -->
+        <div id="expense-control-section" class="hidden">
+            <section id="expense-summary">
+                <h3>Resumo de Despesas</h3>
+                <p id="total-expenses">Total de Despesas: R$ 0.00</p>
+            </section>
+            <section id="income-summary">
+                <h3>Resumo de Entradas</h3>
+                <p id="total-income">Total de Entradas: R$ 0.00</p>
+            </section>
+            <section id="balance-summary">
+                <h3>Resumo do Saldo</h3>
+                <p id="balance">Saldo Total: R$ 0.00</p>
+            </section>
+            <section id="expenses-by-date">
+                <h3>Despesas por Data</h3>
+                <select id="month-filter">
+                    <option value="">Todos</option>
+                    <option value="01">Janeiro</option>
+                    <option value="02">Fevereiro</option>
+                    <option value="03">Março</option>
+                    <option value="04">Abril</option>
+                    <option value="05">Maio</option>
+                    <option value="06">Junho</option>
+                    <option value="07">Julho</option>
+                    <option value="08">Agosto</option>
+                    <option value="09">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Parcelas</th>
+                            <th>Data de Pagamento</th>
+                            <th>Credor/Pagador</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expense-by-date-table-body"></tbody>
+                </table>
+            </section>
+            <button id="back-to-main-from-expense-control" class="section-button">Voltar</button>
+        </div>
+    </div>
+
+    <script>
+        // Função para exibir a tela selecionada
+        function showScreen(screenId) {
+            const screens = document.querySelectorAll('.container > div');
+            screens.forEach(screen => screen.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Função para verificar o login
+        function checkLogin(username, password) {
+            return username === 'admin' && password === '1234';
+        }
+
+        // Evento de submit do formulário de login
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('login-error');
+
+            if (checkLogin(username, password)) {
+                showScreen('main-container');
+                loginError.textContent = '';
+            } else {
+                loginError.textContent = 'Usuário ou senha incorretos';
+            }
+        });
+
+        // Evento de clique dos botões da tela principal
+        document.getElementById('register-expense-btn').addEventListener('click', function() {
+            showScreen('expense-section');
+        });
+
+        document.getElementById('record-income-btn').addEventListener('click', function() {
+            showScreen('income-section');
+        });
+
+        document.getElementById('expense-control-btn').addEventListener('click', function() {
+            showScreen('expense-control-section');
+        });
+
+        // Evento de submit do formulário de despesas
+        document.getElementById('expense-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const description = document.getElementById('expense-description').value;
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const installments = document.getElementById('expense-installments').value;
+            const paymentDate = document.getElementById('expense-payment-date').value;
+            const creditor = document.getElementById('expense-creditor').value;
+
+            const expenseTableBody = document.getElementById('expense-table-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${description}</td>
+                <td>R$ ${amount.toFixed(2)}</td>
+                <td>${installments}</td>
+                <td>${paymentDate}</td>
+                <td>${creditor}</td>
+                <td><button class="delete-button">Excluir</button></td>
+            `;
+            expenseTableBody.appendChild(newRow);
+
+            document.getElementById('expense-form').reset();
+        });
+
+        // Evento de submit do formulário de entradas
+        document.getElementById('income-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const description = document.getElementById('income-description').value;
+            const amount = parseFloat(document.getElementById('income-amount').value);
+            const paymentDate = document.getElementById('income-payment-date').value;
+            const payer = document.getElementById('income-payer').value;
+
+            const incomeTableBody = document.getElementById('income-table-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${description}</td>
+                <td>R$ ${amount.toFixed(2)}</td>
+                <td>${paymentDate}</td>
+                <td>${payer}</td>
+                <td><button class="delete-button">Excluir</button></td>
+            `;
+            incomeTableBody.appendChild(newRow);
+
+            document.getElementById('income-form').reset();
+        });
+
+        // Função para atualizar a tabela de controle de gastos
+        function updateExpenseControlTable() {
+            const expenseTableBody = document.getElementById('expense-table-body').getElementsByTagName('tr');
+            const incomeTableBody = document.getElementById('income-table-body').getElementsByTagName('tr');
+            const filterValue = document.getElementById('month-filter').value;
+
+            const expenseByDateTableBody = document.getElementById('expense-by-date-table-body');
+            expenseByDateTableBody.innerHTML = '';
+
+            let totalExpenses = 0;
+            let totalIncome = 0;
+
+            // Adiciona as despesas à tabela de controle de gastos
+            for (const row of expenseTableBody) {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const date = new Date(cells[3].textContent);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    if (filterValue === '' || filterValue === month) {
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                            <td>Saída</td>
+                            <td>${cells[0].textContent}</td>
+                            <td>${cells[1].textContent}</td>
+                            <td>${cells[2].textContent}</td>
+                            <td>${cells[3].textContent}</td>
+                            <td>${cells[4].textContent}</td>
+                        `;
+                        expenseByDateTableBody.appendChild(newRow);
+                        totalExpenses += parseFloat(cells[1].textContent.replace('R$ ', '').replace(',', '.'));
+                    }
+                }
+            }
+
+            // Adiciona as entradas à tabela de controle de gastos
+            for (const row of incomeTableBody) {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const date = new Date(cells[2].textContent);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    if (filterValue === '' || filterValue === month) {
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                            <td>Entrada</td>
+                            <td>${cells[0].textContent}</td>
+                            <td>${cells[1].textContent}</td>
+                            <td>–</td>
+                            <td>${cells[2].textContent}</td>
+                            <td>${cells[3].textContent}</td>
+                        `;
+                        expenseByDateTableBody.appendChild(newRow);
+                        totalIncome += parseFloat(cells[1].textContent.replace('R$ ', '').replace(',', '.'));
+                    }
+                }
+            }
+
+            // Atualiza os resumos
+            document.getElementById('total-expenses').textContent = `Total de Despesas: R$ ${totalExpenses.toFixed(2)}`;
+            document.getElementById('total-income').textContent = `Total de Entradas: R$ ${totalIncome.toFixed(2)}`;
+            document.getElementById('balance').textContent = `Saldo Total: R$ ${(totalIncome - totalExpenses).toFixed(2)}`;
+        }
+
+        // Evento de mudança no filtro de mês
+        document.getElementById('month-filter').addEventListener('change', updateExpenseControlTable);
+
+        // Atualiza a tabela ao exibir a tela de controle de gastos
+        document.getElementById('expense-control-btn').addEventListener('click', updateExpenseControlTable);
+
+        // Evento de clique dos botões de voltar
+        document.getElementById('back-to-main-from-expense').addEventListener('click', function() {
+            showScreen('main-container');
+        });
+
+        document.getElementById('back-to-main-from-income').addEventListener('click', function() {
+            showScreen('main-container');
+        });
+
+        document.getElementById('back-to-main-from-expense-control').addEventListener('click', function() {
+            showScreen('main-container');
+        });
+    </script>
+</body>
+</html>
