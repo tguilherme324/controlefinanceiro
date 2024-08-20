@@ -191,28 +191,28 @@
             }
         });
 
-        // Adicionar nova despesa
+        // Adicionar despesa
         expenseForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const description = document.getElementById('expense-description').value;
-            const amount = parseFloat(document.getElementById('expense-amount').value);
-            const installments = parseInt(document.getElementById('expense-installments').value);
-            const paymentDate = document.getElementById('expense-payment-date').value;
-            const creditor = document.getElementById('expense-creditor').value;
+           e.preventDefault();
+           const description = document.getElementById('expense-description').value;
+           const amount = parseFloat(document.getElementById('expense-amount').value);
+           const installments = document.getElementById('expense-installments').value;
+           const paymentDate = document.getElementById('expense-payment-date').value;
+           const creditor = document.getElementById('expense-creditor').value;
 
-            if (currentUser) {
-                const userId = currentUser.uid;
-                const expenseRef = ref(database, 'expenses/' + userId);
-                push(expenseRef, {
-                    description,
-                    amount,
-                    installments,
-                    paymentDate,
-                    creditor
-                });
-                expenseForm.reset();
-            }
-        });
+        if (currentUser) {
+            const expenseRef = ref(database, 'expenses/' + currentUser.uid);
+            const newExpenseRef = push(expenseRef);
+            set(newExpenseRef, {
+                description,
+                amount,
+                installments,
+                paymentDate,
+                creditor
+            });
+            expenseForm.reset();
+        }
+    });
 
         // Adicionar entrada
         incomeForm.addEventListener('submit', (e) => {
@@ -243,27 +243,27 @@
         // Mostrar despesas
         function showExpenses() {
             if (currentUser) {
-                const expenseRef = ref(database, 'expenses/' + currentUser.uid);
-                onValue(expenseRef, (snapshot) => {
+               const expenseRef = ref(database, 'expenses/' + currentUser.uid);
+               onValue(expenseRef, (snapshot) => {
                     expenseTableBody.innerHTML = '';
                     let total = 0;
                     snapshot.forEach((childSnapshot) => {
-                        const expense = childSnapshot.val();
-                        total += expense.amount;
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${expense.description}</td>
-                            <td>R$ ${expense.amount.toFixed(2)}</td>
-                            <td>${expense.installments}</td>
-                            <td>${expense.paymentDate}</td>
-                            <td>${expense.creditor}</td>
-                            <td><button class="delete-button" data-id="${childSnapshot.key}">Excluir</button></td>
+                       const expense = childSnapshot.val();
+                       total += expense.amount;
+                       const row = document.createElement('tr');
+                       row.innerHTML = `
+                           <td>${expense.description}</td>
+                           <td>R$ ${expense.amount.toFixed(2)}</td>
+                           <td>${expense.installments}</td>
+                           <td>${expense.paymentDate}</td>
+                           <td>${expense.creditor}</td>
+                           <td><button class="delete-button" data-id="${childSnapshot.key}">Excluir</button></td>
                         `;
                         expenseTableBody.appendChild(row);
-                    });
-                    totalExpenses.textContent = 'Total de Despesas: R$ ' + total.toFixed(2);
-                });
-            }
+                     });
+                     totalExpenses.textContent = 'Total de Despesas: R$ ' + total.toFixed(2);
+                 });
+             }
         }
 
         // Mostrar entradas
@@ -530,40 +530,34 @@
         function checkLogin(username, password) {
             return username === 'admin' && password === 'admin'; // Exemplo de verificação
         }
+   
+        // Atualiza a tabela de controle de gastos
+function updateExpenseControlTable() {
+    const expenseTableBody = document.getElementById('expense-table-body').getElementsByTagName('tr');
+    const incomeTableBody = document.getElementById('income-table-body').getElementsByTagName('tr');
+    const filterValue = document.getElementById('month-filter').value;
 
-        // Função para atualizar a tabela de controle de gastos
-        function updateExpenseControlTable() {
-            const expenseTableBody = document.getElementById('expense-table-body').getElementsByTagName('tr');
-            const incomeTableBody = document.getElementById('income-table-body').getElementsByTagName('tr');
-            const filterValue = document.getElementById('month-filter').value;
+    // Obtém a tabela onde as despesas e entradas serão exibidas
+    const expenseByDateTableBody = document.getElementById('expense-by-date-table-body');
 
-            const expenseByDateTableBody = document.getElementById('expense-by-date-table-body');
-            expenseByDateTableBody.innerHTML = '';
+    // Limpa a tabela para garantir que não há duplicação
+    expenseByDateTableBody.innerHTML = '';
 
-            let totalExpenses = 0;
-            let totalIncome = 0;
+    let totalExpenses = 0;
+    let totalIncome = 0;
 
-            // Adiciona as despesas à tabela de controle de gastos
-            for (const row of expenseTableBody) {
-                const cells = row.getElementsByTagName('td');
-                if (cells.length > 0) {
-                    const date = new Date(cells[3].textContent);
-                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-                    if (filterValue === '' || filterValue === month) {
-                        const newRow = document.createElement('tr');
-                        newRow.innerHTML = `
-                            <td>Saída</td>
-                            <td>${cells[0].textContent}</td>
-                            <td>${cells[1].textContent}</td>
-                            <td>${cells[2].textContent}</td>
-                            <td>${cells[3].textContent}</td>
-                            <td>${cells[4].textContent}</td>
-                        `;
-                        expenseByDateTableBody.appendChild(newRow);
-                        totalExpenses += parseFloat(cells[1].textContent.replace('R$ ', '').replace(',', '.'));
-                    }
-                }
-            }
+    // Função para adicionar uma nova linha à tabela
+    function addRow(type, description, amount, date, category) {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${type}</td>
+            <td>${description}</td>
+            <td>${amount}</td>
+            <td>${type === 'Saída' ? date : '–'}</td>
+            <td>${category}</td>
+        `;
+        expenseByDateTableBody.appendChild(newRow);
+    }
 
             // Adiciona as despesas à tabela de controle de gastos
             for (const row of expenseTableBody) {
@@ -618,10 +612,10 @@
         // Evento de mudança no filtro de mês
         document.getElementById('month-filter').addEventListener('change', updateExpenseControlTable);
 
-        // Atualiza a tabela ao exibir a tela de controle de gastos
+       // Atualiza a tabela ao exibir a tela de controle de gastos
         document.getElementById('expense-control-btn').addEventListener('click', updateExpenseControlTable);
-
-        // Evento de clique dos botões de voltar
+        
+       // Evento de clique dos botões de voltar
         document.getElementById('back-to-main-from-expense').addEventListener('click', function() {
             showScreen('main-container');
         });
