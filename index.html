@@ -107,238 +107,267 @@
         }
     </style>
 
- <!-- Firebase SDKs -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
-    // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAME17vV-us-gIj9mEu0C60qq-q2jqPGoI",
-        authDomain: "controle-financeiro-f88a4.firebaseapp.com",
-        databaseURL: "https://controle-financeiro-f88a4-default-rtdb.firebaseio.com",
-        projectId: "controle-financeiro-f88a4",
-        storageBucket: "controle-financeiro-f88a4.appspot.com",
-        messagingSenderId: "417571608712",
-        appId: "1:417571608712:web:d6d942934bf04cee1da73d"
-    };
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAME17vV-us-gIj9mEu0C60qq-q2jqPGoI",
+            authDomain: "controle-financeiro-f88a4.firebaseapp.com",
+            databaseURL: "https://controle-financeiro-f88a4-default-rtdb.firebaseio.com",
+            projectId: "controle-financeiro-f88a4",
+            storageBucket: "controle-financeiro-f88a4.appspot.com",
+            messagingSenderId: "417571608712",
+            appId: "1:417571608712:web:45088a8d74b5fdc81da73d"
+        };
 
-    // Inicialize o Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const auth = getAuth(app);
+        // Inicialize o Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
 
-    // Referências aos elementos HTML
-    const loginContainer = document.getElementById('login-container');
-    const mainContainer = document.getElementById('main-container');
-    const expenseSection = document.getElementById('expense-section');
-    const incomeSection = document.getElementById('income-section');
-    const expenseControlSection = document.getElementById('expense-control-section');
+        // Referências aos elementos HTML
+        const loginContainer = document.getElementById('login-container');
+        const mainContainer = document.getElementById('main-container');
+        const expenseSection = document.getElementById('expense-section');
+        const incomeSection = document.getElementById('income-section');
+        const expenseControlSection = document.getElementById('expense-control-section');
 
-    const loginForm = document.getElementById('login-form');
-    const expenseForm = document.getElementById('expense-form');
-    const incomeForm = document.getElementById('income-form');
-    const backToMainFromExpense = document.getElementById('back-to-main-from-expense');
-    const backToMainFromIncome = document.getElementById('back-to-main-from-income');
-    const backToMainFromExpenseControl = document.getElementById('back-to-main-from-expense-control');
+        const loginForm = document.getElementById('login-form');
+        const expenseForm = document.getElementById('expense-form');
+        const incomeForm = document.getElementById('income-form');
+        const backToMainFromExpense = document.getElementById('back-to-main-from-expense');
+        const backToMainFromIncome = document.getElementById('back-to-main-from-income');
+        const backToMainFromExpenseControl = document.getElementById('back-to-main-from-expense-control');
 
-    const expenseTableBody = document.getElementById('expense-table-body');
-    const incomeTableBody = document.getElementById('income-table-body');
-    const totalExpenses = document.getElementById('total-expenses');
-    const totalIncome = document.getElementById('total-income');
-    const balance = document.getElementById('balance');
-    const monthFilter = document.getElementById('month-filter');
-    const expensesByDateBody = document.getElementById('expenses-by-date-body');
+        const expenseTableBody = document.getElementById('expense-table-body');
+        const incomeTableBody = document.getElementById('income-table-body');
+        const totalExpenses = document.getElementById('total-expenses');
+        const totalIncome = document.getElementById('total-income');
+        const balance = document.getElementById('balance');
+        const monthFilter = document.getElementById('month-filter');
+        const expensesByDateBody = document.getElementById('expenses-by-date-body');
 
-    let currentUser = null;
+        let currentUser = null;
 
-    // Função para exibir/ocultar seções
-    function showSection(section) {
-        loginContainer.classList.add('hidden');
-        mainContainer.classList.add('hidden');
-        expenseSection.classList.add('hidden');
-        incomeSection.classList.add('hidden');
-        expenseControlSection.classList.add('hidden');
+        // Função para exibir/ocultar seções
+        function showSection(section) {
+            loginContainer.classList.add('hidden');
+            mainContainer.classList.add('hidden');
+            expenseSection.classList.add('hidden');
+            incomeSection.classList.add('hidden');
+            expenseControlSection.classList.add('hidden');
 
-        section.classList.remove('hidden');
-    }
+            section.classList.remove('hidden');
+        }
 
-    // Função de login
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        // Função de login
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                currentUser = userCredential.user;
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    currentUser = userCredential.user;
+                    localStorage.setItem('user', JSON.stringify(currentUser)); // Armazenar usuário no localStorage
+                    showSection(mainContainer);
+                })
+                .catch((error) => {
+                    document.getElementById('login-error').textContent = 'Erro ao fazer login: ' + error.message;
+                });
+        });
+
+        // Monitorar o estado de autenticação
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
                 showSection(mainContainer);
-            })
-            .catch((error) => {
-                document.getElementById('login-error').textContent = 'Erro ao fazer login: ' + error.message;
-            });
-    });
+            } else {
+                showSection(loginContainer);
+            }
+        });
 
-    // Monitorar o estado de autenticação
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            showSection(mainContainer);
-        } else {
-            showSection(loginContainer);
-        }
-    });
+        // Adicionar nova despesa
+        expenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const description = document.getElementById('expense-description').value;
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const installments = parseInt(document.getElementById('expense-installments').value);
+            const paymentDate = document.getElementById('expense-payment-date').value;
+            const creditor = document.getElementById('expense-creditor').value;
 
-    // Adicionar despesa
-    expenseForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const description = document.getElementById('expense-description').value;
-        const amount = parseFloat(document.getElementById('expense-amount').value);
-        const installments = document.getElementById('expense-installments').value;
-        const paymentDate = document.getElementById('expense-payment-date').value;
-        const creditor = document.getElementById('expense-creditor').value;
-
-        if (currentUser) {
-            const expenseRef = ref(database, 'expenses/' + currentUser.uid);
-            const newExpenseRef = push(expenseRef);
-            set(newExpenseRef, {
-                description,
-                amount,
-                installments,
-                paymentDate,
-                creditor
-            });
-            expenseForm.reset();
-        }
-    });
-
-    // Adicionar entrada
-    incomeForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const description = document.getElementById('income-description').value;
-        const amount = parseFloat(document.getElementById('income-amount').value);
-        const paymentDate = document.getElementById('income-payment-date').value;
-        const payer = document.getElementById('income-payer').value;
-
-        if (currentUser) {
-            const incomeRef = ref(database, 'income/' + currentUser.uid);
-            const newIncomeRef = push(incomeRef);
-            set(newIncomeRef, {
-                description,
-                amount,
-                paymentDate,
-                payer
-            });
-            incomeForm.reset();
-        }
-    });
-
-    // Voltar para a tela principal
-    backToMainFromExpense.addEventListener('click', () => showSection(mainContainer));
-    backToMainFromIncome.addEventListener('click', () => showSection(mainContainer));
-    backToMainFromExpenseControl.addEventListener('click', () => showSection(mainContainer));
-
-    // Mostrar despesas
-    function showExpenses() {
-        if (currentUser) {
-            const expenseRef = ref(database, 'expenses/' + currentUser.uid);
-            onValue(expenseRef, (snapshot) => {
-                expenseTableBody.innerHTML = '';
-                let total = 0;
-                snapshot.forEach((childSnapshot) => {
-                    const expense = childSnapshot.val();
-                    total += expense.amount;
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${expense.description}</td>
-                        <td>R$ ${expense.amount.toFixed(2)}</td>
-                        <td>${expense.installments}</td>
-                        <td>${expense.paymentDate}</td>
-                        <td>${expense.creditor}</td>
-                        <td><button class="delete-button" data-id="${childSnapshot.key}">Excluir</button></td>
-                    `;
-                    expenseTableBody.appendChild(row);
+            if (currentUser) {
+                const userId = currentUser.uid;
+                const expenseRef = ref(database, 'expenses/' + userId);
+                push(expenseRef, {
+                    description,
+                    amount,
+                    installments,
+                    paymentDate,
+                    creditor
                 });
-                totalExpenses.textContent = 'Total de Despesas: R$ ' + total.toFixed(2);
-            });
-        }
-    }
+                expenseForm.reset();
+            }
+        });
 
-    // Mostrar entradas
-    function showIncome() {
-        if (currentUser) {
-            const incomeRef = ref(database, 'income/' + currentUser.uid);
-            onValue(incomeRef, (snapshot) => {
-                incomeTableBody.innerHTML = '';
-                let total = 0;
-                snapshot.forEach((childSnapshot) => {
-                    const income = childSnapshot.val();
-                    total += income.amount;
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${income.description}</td>
-                        <td>R$ ${income.amount.toFixed(2)}</td>
-                        <td>${income.paymentDate}</td>
-                        <td>${income.payer}</td>
-                        <td><button class="delete-button" data-id="${childSnapshot.key}">Excluir</button></td>
-                    `;
-                    incomeTableBody.appendChild(row);
+        // Adicionar entrada
+        incomeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const description = document.getElementById('income-description').value;
+            const amount = parseFloat(document.getElementById('income-amount').value);
+            const paymentDate = document.getElementById('income-payment-date').value;
+            const payer = document.getElementById('income-payer').value;
+
+            if (currentUser) {
+                const incomeRef = ref(database, 'income/' + currentUser.uid);
+                const newIncomeRef = push(incomeRef);
+                set(newIncomeRef, {
+                    description,
+                    amount,
+                    paymentDate,
+                    payer
                 });
-                totalIncome.textContent = 'Total de Entradas: R$ ' + total.toFixed(2);
-            });
+                incomeForm.reset();
         }
-    }
+    });
 
-    // Mostrar despesas por data
-    function showExpensesByDate(month) {
-        if (currentUser) {
-            const expenseRef = ref(database, 'expenses/' + currentUser.uid);
-            onValue(expenseRef, (snapshot) => {
-                expensesByDateBody.innerHTML = '';
-                snapshot.forEach((childSnapshot) => {
-                    const expense = childSnapshot.val();
-                    if (month === '' || expense.paymentDate.startsWith(`2024-${month}`)) {
+        // Voltar para a tela principal
+        backToMainFromExpense.addEventListener('click', () => showSection(mainContainer));
+        backToMainFromIncome.addEventListener('click', () => showSection(mainContainer));
+        backToMainFromExpenseControl.addEventListener('click', () => showSection(mainContainer));
+
+        // Mostrar despesas
+        function showExpenses() {
+            if (currentUser) {
+                const expenseRef = ref(database, 'expenses/' + currentUser.uid);
+                onValue(expenseRef, (snapshot) => {
+                    expenseTableBody.innerHTML = '';
+                    let total = 0;
+                    snapshot.forEach((childSnapshot) => {
+                        const expense = childSnapshot.val();
+                        total += expense.amount;
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${expense.paymentDate}</td>
                             <td>${expense.description}</td>
                             <td>R$ ${expense.amount.toFixed(2)}</td>
                             <td>${expense.installments}</td>
+                            <td>${expense.paymentDate}</td>
                             <td>${expense.creditor}</td>
+                            <td><button class="delete-button" data-id="${childSnapshot.key}">Excluir</button></td>
                         `;
-                        expensesByDateBody.appendChild(row);
-                    }
+                        expenseTableBody.appendChild(row);
+                    });
+                    totalExpenses.textContent = 'Total de Despesas: R$ ' + total.toFixed(2);
                 });
-            });
+            }
         }
-    }
 
-    // Atualizar resumo financeiro
-    function updateFinancialSummary() {
-        showExpenses();
-        showIncome();
-        showExpensesByDate(monthFilter.value);
-    }
+        // Mostrar entradas
+        function showIncome() {
+            if (currentUser) {
+                const incomeRef = ref(database, 'income/' + currentUser.uid);
+                onValue(incomeRef, (snapshot) => {
+                    incomeTableBody.innerHTML = '';
+                    let total = 0;
+                    snapshot.forEach((childSnapshot) => {
+                        const income = childSnapshot.val();
+                        total += income.amount;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${income.description}</td>
+                            <td>R$ ${income.amount.toFixed(2)}</td>
+                            <td>${income.paymentDate}</td>
+                            <td>${income.payer}</td>
+                            <td><button class="delete-button" data-id="${childSnapshot.key}">Excluir</button></td>
+                        `;
+                        incomeTableBody.appendChild(row);
+                    });
+                    totalIncome.textContent = 'Total de Entradas: R$ ' + total.toFixed(2);
+                });
+            }
+        }
 
-    // Eventos dos botões de navegação
-    document.getElementById('register-expense-btn').addEventListener('click', () => {
-        showSection(expenseSection);
+        // Mostrar despesas por data
+        function showExpensesByDate(month) {
+            if (currentUser) {
+                const expenseRef = ref(database, 'expenses/' + currentUser.uid);
+                onValue(expenseRef, (snapshot) => {
+                    expensesByDateBody.innerHTML = '';
+                    snapshot.forEach((childSnapshot) => {
+                        const expense = childSnapshot.val();
+                        if (month === '' || expense.paymentDate.startsWith(`2024-${month}`)) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${expense.paymentDate}</td>
+                                <td>${expense.description}</td>
+                                <td>R$ ${expense.amount.toFixed(2)}</td>
+                                <td>${expense.installments}</td>
+                                <td>${expense.creditor}</td>
+                            `;
+                            expensesByDateBody.appendChild(row);
+                        }
+                    });
+                });
+            }
+        }
+
+        // Atualizar resumo financeiro
+        function updateFinancialSummary() {
+            showExpenses();
+            showIncome();
+            showExpensesByDate(monthFilter.value);
+        }
+
+        // Eventos dos botões de navegação
+        document.getElementById('register-expense-btn').addEventListener('click', () => {
+            showSection(expenseSection);
+            updateFinancialSummary();
+        });
+
+        document.getElementById('record-income-btn').addEventListener('click', () => {
+            showSection(incomeSection);
+            updateFinancialSummary();
+        });
+
+        document.getElementById('expense-control-btn').addEventListener('click', () => {
+            showSection(expenseControlSection);
+            updateFinancialSummary();
+        });
+
+        // Atualizar resumo financeiro no início
         updateFinancialSummary();
-    });
 
-    document.getElementById('record-income-btn').addEventListener('click', () => {
-        showSection(incomeSection);
-        updateFinancialSummary();
-    });
+        // Lidar com o clique do botão de excluir
+        function handleDeleteButtonClick(e) {
+            if (e.target && e.target.classList.contains('delete-button')) {
+                const id = e.target.getAttribute('data-id');
+                const type = e.target.closest('table').id.includes('expense') ? 'expenses' : 'income';
+                
+                if (currentUser) {
+                    const itemRef = ref(database, `${type}/${currentUser.uid}/${id}`);
+                    set(itemRef, null) // Remove o item do banco de dados
+                        .then(() => {
+                            if (type === 'expenses') {
+                                showExpenses(); // Atualiza a lista de despesas
+                            } else {
+                                showIncome(); // Atualiza a lista de entradas
+                            }
+                            updateFinancialSummary(); // Atualiza o resumo financeiro após exclusão
+                        })
+                        .catch((error) => {
+                            console.error('Erro ao excluir item: ', error);
+                        });
+                }
+            }
+        }
 
-    document.getElementById('expense-control-btn').addEventListener('click', () => {
-        showSection(expenseControlSection);
-        updateFinancialSummary();
-    });
-
-    // Atualizar resumo financeiro no início
-    updateFinancialSummary();
+        // Adiciona o listener para o evento de clique nos botões de excluir
+        document.getElementById('expense-table-body').addEventListener('click', handleDeleteButtonClick);
+        document.getElementById('income-table-body').addEventListener('click', handleDeleteButtonClick);
 
     </script>
 </head>
@@ -438,7 +467,8 @@
             <button id="back-to-main-from-income" class="section-button">Voltar</button>
         </div>
 
-        <!-- Tela de Controle de Gastos -->
+
+         <!-- Tela de Controle de Gastos -->
         <div id="expense-control-section" class="hidden">
             <section id="expense-summary">
                 <h3>Resumo de Despesas</h3>
@@ -488,6 +518,7 @@
     </div>
 
     <script>
+
         // Função para exibir a tela selecionada
         function showScreen(screenId) {
             const screens = document.querySelectorAll('.container > div');
@@ -497,82 +528,8 @@
 
         // Função para verificar o login
         function checkLogin(username, password) {
-            return username === 'admin' && password === '1234';
+            return username === 'admin' && password === 'admin'; // Exemplo de verificação
         }
-
-        // Evento de submit do formulário de login
-        document.getElementById('login-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loginError = document.getElementById('login-error');
-
-            if (checkLogin(username, password)) {
-                showScreen('main-container');
-                loginError.textContent = '';
-            } else {
-                loginError.textContent = 'Usuário ou senha incorretos';
-            }
-        });
-
-        // Evento de clique dos botões da tela principal
-        document.getElementById('register-expense-btn').addEventListener('click', function() {
-            showScreen('expense-section');
-        });
-
-        document.getElementById('record-income-btn').addEventListener('click', function() {
-            showScreen('income-section');
-        });
-
-        document.getElementById('expense-control-btn').addEventListener('click', function() {
-            showScreen('expense-control-section');
-        });
-
-        // Evento de submit do formulário de despesas
-        document.getElementById('expense-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const description = document.getElementById('expense-description').value;
-            const amount = parseFloat(document.getElementById('expense-amount').value);
-            const installments = document.getElementById('expense-installments').value;
-            const paymentDate = document.getElementById('expense-payment-date').value;
-            const creditor = document.getElementById('expense-creditor').value;
-
-            const expenseTableBody = document.getElementById('expense-table-body');
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${description}</td>
-                <td>R$ ${amount.toFixed(2)}</td>
-                <td>${installments}</td>
-                <td>${paymentDate}</td>
-                <td>${creditor}</td>
-                <td><button class="delete-button">Excluir</button></td>
-            `;
-            expenseTableBody.appendChild(newRow);
-
-            document.getElementById('expense-form').reset();
-        });
-
-        // Evento de submit do formulário de entradas
-        document.getElementById('income-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const description = document.getElementById('income-description').value;
-            const amount = parseFloat(document.getElementById('income-amount').value);
-            const paymentDate = document.getElementById('income-payment-date').value;
-            const payer = document.getElementById('income-payer').value;
-
-            const incomeTableBody = document.getElementById('income-table-body');
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${description}</td>
-                <td>R$ ${amount.toFixed(2)}</td>
-                <td>${paymentDate}</td>
-                <td>${payer}</td>
-                <td><button class="delete-button">Excluir</button></td>
-            `;
-            incomeTableBody.appendChild(newRow);
-
-            document.getElementById('income-form').reset();
-        });
 
         // Função para atualizar a tabela de controle de gastos
         function updateExpenseControlTable() {
@@ -585,6 +542,28 @@
 
             let totalExpenses = 0;
             let totalIncome = 0;
+
+            // Adiciona as despesas à tabela de controle de gastos
+            for (const row of expenseTableBody) {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const date = new Date(cells[3].textContent);
+                    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                    if (filterValue === '' || filterValue === month) {
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                            <td>Saída</td>
+                            <td>${cells[0].textContent}</td>
+                            <td>${cells[1].textContent}</td>
+                            <td>${cells[2].textContent}</td>
+                            <td>${cells[3].textContent}</td>
+                            <td>${cells[4].textContent}</td>
+                        `;
+                        expenseByDateTableBody.appendChild(newRow);
+                        totalExpenses += parseFloat(cells[1].textContent.replace('R$ ', '').replace(',', '.'));
+                    }
+                }
+            }
 
             // Adiciona as despesas à tabela de controle de gastos
             for (const row of expenseTableBody) {
@@ -657,3 +636,4 @@
     </script>
 </body>
 </html>
+
